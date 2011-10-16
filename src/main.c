@@ -30,12 +30,24 @@
 
 int main(int arc, char** argv)
 {
-	#ifdef _DEBUG
-	printf("spoofer");
+	/* copyrights and version info */
+	printf("ARP spoofer");
 	#ifdef _VERSION
 	printf(" v %s", _VERSION);
 	#endif
-	printf("\n\n");
+	printf(", built on %s %s \n", __DATE__, __TIME__);
+	printf("(c) 2011 Ilya Arefiev <arefiev.id@gmail.com>, license: BSD license\n");
+	printf("\n");
+	/* copyright and version info */
+
+	#ifdef _DEBUG
+	printf("startup\n");
+	#endif
+
+	// TODO
+
+	#ifdef _DEBUG
+	printf("shutdown\n");
 	#endif
 
 	return 0;
