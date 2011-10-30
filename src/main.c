@@ -28,7 +28,9 @@
 
 #include <stdio.h>
 
-int main(int arc, char** argv)
+#include "pf.h"
+
+int main(int argc, char** argv)
 {
 	/* copyrights and version info */
 	printf("ARP spoofer");
@@ -44,11 +46,36 @@ int main(int arc, char** argv)
 	printf("startup\n");
 	#endif
 
+	if ( argc < 2 )
+	{
+		printf("not enought params\n");
+		return 1;
+	}
+
 	// TODO
+	PF_PROPERTIES* prop = pf_init( argv[1] );
+	
+	if ( !prop )
+	{
+		fprintf(stderr, "-- PF init error\n");
+		return 1;	// TODO: exit code enum
+	}
+	
+	if ( !pf_start(prop) )
+	{
+		fprintf(stderr, "-- PF start error\n");
+		return 1;	// TODO: exit code enum
+	}
+
+	if ( !pf_stop() )
+	{
+		fprintf(stderr, "-- PF stop error\n");
+		return 1;	// TODO: exit code enum
+	}
 
 	#ifdef _DEBUG
 	printf("shutdown\n");
 	#endif
 
-	return 0;
+	return 0;	// TODO: exit code enum
 }

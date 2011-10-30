@@ -1,6 +1,7 @@
 PNAME		=	spoofer
 
-SRC			=	main.c
+SRC			=	main.c\
+				pf.c
 
 OBJCPP		=	$(subst .cpp,.o,$(SRC))
 OBJ			=	$(subst .c,.o,$(OBJCPP))
