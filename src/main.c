@@ -61,16 +61,26 @@ int main(int argc, char** argv)
 		return 1;	// TODO: exit code enum
 	}
 	
-	if ( !pf_start(prop) )
+	if ( pf_start(prop) != 0 )
 	{
 		fprintf(stderr, "-- PF start error\n");
+		pf_deinit(prop);
+
 		return 1;	// TODO: exit code enum
 	}
 
-	if ( !pf_stop() )
+	if ( pf_stop() != 0 )
 	{
 		fprintf(stderr, "-- PF stop error\n");
+		pf_deinit(prop);
+
 		return 1;	// TODO: exit code enum
+	}
+
+	if ( pf_deinit(prop) != 0 )
+	{
+		fprintf( stderr, "-- PF deinit error\n" );
+		return 1;
 	}
 
 	#ifdef _DEBUG

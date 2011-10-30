@@ -52,20 +52,36 @@ PF_PROPERTIES* pf_init(char* _devname)
 
 	// init properties
 	PF_PROPERTIES* prop = (PF_PROPERTIES*)calloc(1, sizeof(PF_PROPERTIES));
+	if ( !prop )
+	{
+		fprintf( stderr, "-- error in properties allocation\n" );
+		return NULL;
+	}
 
 	// set up callbacks
 	PF_CALLBACKS* clb_root = (PF_CALLBACKS*)calloc(1, sizeof(PF_CALLBACKS));
+	if ( !clb_root )
+	{
+		fprintf( stderr, "-- error in callbacks allocation\n" );
+		if ( prop )
+		{
+			free(prop);
+		}
+		free(clb_root);
+		return NULL;
+	}
 	clb_root->packet_type = ETH_P_ARP;
 	clb_root->callback = &pf_arp_callback;
 
 	prop->hooks = clb_root;
 
 	// create socket
-	prop->sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));	// TODO: htons?
+	prop->sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if ( prop->sock == -1 )
 	{
 		fprintf( stderr, "create socket error: (%d) %s\n",
 			errno, strerror(errno) );
+		pf_deinit(prop);
 		return NULL;
 	}
 
@@ -78,6 +94,7 @@ PF_PROPERTIES* pf_init(char* _devname)
 	{
 		fprintf( stderr, "iocl error: (%d) %s\n",
 			errno, strerror(errno) );
+		pf_deinit(prop);
 		return NULL;
 	}
 
@@ -87,12 +104,13 @@ PF_PROPERTIES* pf_init(char* _devname)
 
 	sll.sll_family = PF_PACKET;
 	sll.sll_ifindex = iface.ifr_ifindex;
-	sll.sll_protocol = htons( ETH_P_ALL );	// TODO: htons (?)
+	sll.sll_protocol = htons( ETH_P_ALL );
 
 	if ( bind( prop->sock, (struct sockaddr*)&sll, sizeof(struct sockaddr_ll) ) == -1 )
 	{
 		fprintf( stderr, "bind error: (%d) %s\n",
 			errno, strerror(errno) );
+		pf_deinit(prop);
 		return NULL;
 	}
 
@@ -109,7 +127,7 @@ int pf_deinit(PF_PROPERTIES* _properties)
 	
 	if ( !_properties )
 	{
-		return 0;
+		return 1;
 	}
 
 	PF_CALLBACKS *clb_root, *clb_cur;
@@ -124,7 +142,7 @@ int pf_deinit(PF_PROPERTIES* _properties)
 
 	free(_properties);
 	
-	return 1;
+	return 0;
 }
 
 int pf_start(PF_PROPERTIES* _properties)
@@ -137,7 +155,7 @@ int pf_start(PF_PROPERTIES* _properties)
 
 	// TODO
 
-	return 0;
+	return 1;
 }
 
 int pf_stop()
@@ -150,7 +168,7 @@ int pf_stop()
 
 	// TODO
 
-	return 0;
+	return 1;
 }
 
 int pf_arp_callback(char* _packet, int _len)
@@ -163,5 +181,5 @@ int pf_arp_callback(char* _packet, int _len)
 
 	// TODO: 
 
-	return 0;
+	return 1;
 }
