@@ -28,8 +28,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -88,8 +90,17 @@ PF_PROPERTIES* pf_init(char* _devname)
 	// prepare to bind
 	struct ifreq iface;
 	memset( &iface, 0, sizeof(struct ifreq) );
-
 	strncpy( iface.ifr_name, _devname, IFNAMSIZ );
+
+	if ( ioctl( prop->sock, SIOCGIFMTU, &iface ) == -1 )
+	{
+		fprintf( stderr, "ioctl error: (%d) %s\n",
+			errno, strerror(errno) );
+		pf_deinit(prop);
+		return NULL;
+	}
+	prop->mtu = iface.ifr_mtu;
+
 	if ( ioctl( prop->sock, SIOCGIFINDEX, &iface ) == -1 )
 	{
 		fprintf( stderr, "iocl error: (%d) %s\n",
@@ -154,11 +165,21 @@ int pf_start(PF_PROPERTIES* _properties)
 #endif
 
 	// TODO
+	int es = pthread_create( &(_properties->pf_thrd), NULL, pf_reciever, (void*)_properties );
+	if ( es != 0 )
+	{
+		fprintf(stderr, "-- error on pthread_create: (%d) %s\n",
+			es, strerror(es) );
 
-	return 1;
+		_properties->pf_thrd = 0;
+
+		return 1;
+	}
+
+	return 0;
 }
 
-int pf_stop()
+int pf_stop(PF_PROPERTIES* _properties)
 {
 #ifdef _DEBUG
 	printf("== %s\n",
@@ -166,9 +187,79 @@ int pf_stop()
 		);
 #endif
 
+	if ( !_properties )
+	{
+		return 1;
+	}
+
 	// TODO
+	if ( _properties->pf_thrd )
+	{
+		_properties->shutdown = 1;
+		pthread_join( _properties->pf_thrd, NULL );
+
+		return 0;
+	}
 
 	return 1;
+}
+
+void* pf_reciever(void* args)
+{
+	PF_PROPERTIES* prop = (PF_PROPERTIES*)args;
+	if ( !prop )
+	{
+		fprintf( stderr, "-- reciever args NULL\n");
+		return NULL;
+	}
+	int sock = prop->sock;
+	int mtu = prop->mtu;
+	char* shutdown = &(prop->shutdown);
+
+	char* rcvbuf = (char*)calloc( 1, prop->mtu );
+	if ( !rcvbuf )
+	{
+		fprintf( stderr, "-- can't allocate rcvbuf\n");
+	}
+
+	int rcvlen = 0;
+	struct sockaddr pack_info;
+	socklen_t pack_info_len;
+
+	// rcv loop
+
+	while ( 1 )
+	{
+		// TODO: Critical section
+		if ( *shutdown )
+		{
+			break;
+		}
+
+		// TODO: recieve packets and process 'em
+		/* printf("++ %s\n", __PRETTY_FUNCTION__); */
+		// TODO: select()
+		memset( &pack_info, 0, sizeof(struct sockaddr) );
+		rcvlen = recvfrom( sock, rcvbuf, mtu,
+							0, &pack_info, &pack_info_len );
+
+		if ( rcvlen == -1 )
+		{
+			fprintf(stderr, "-- err on rcvfrom: (%d) %s\n",
+				errno, strerror(errno) );
+			break;
+		}
+		printf("recvfrom: %d\n", rcvlen);
+
+		#ifdef _DEBUG
+		//usleep( 500 );
+		#endif
+	}
+
+	printf("++ leave pf thread\n");
+	free( rcvbuf );
+
+	return NULL;
 }
 
 int pf_arp_callback(char* _packet, int _len)

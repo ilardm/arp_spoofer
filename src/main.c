@@ -93,7 +93,7 @@ int main(int argc, char** argv)
 	/* 	return 1;	// TODO: exit code enum */
 	/* } */
 
-	if ( pf_stop() != 0 )
+	if ( pf_stop(prop) != 0 )
 	{
 		fprintf(stderr, "-- PF stop error\n");
 		pf_deinit(prop);

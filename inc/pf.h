@@ -29,6 +29,8 @@
 #ifndef PF_H
 #define PF_H
 
+#include <pthread.h>
+
 typedef struct PF_CALLBACKS
 {
 	int packet_type;
@@ -40,13 +42,19 @@ typedef struct PF_CALLBACKS
 typedef struct PF_PROPERTIES
 {
 	int sock;
+	int mtu;
 	PF_CALLBACKS* hooks;
+
+	char shutdown;
+	pthread_t pf_thrd;
 } PF_PROPERTIES;
 
 PF_PROPERTIES* pf_init(char*);
 int pf_deinit(PF_PROPERTIES*);
 int pf_start(PF_PROPERTIES*);
-int pf_stop();
+int pf_stop(PF_PROPERTIES*);
+
+void* pf_reciever(void*);
 
 // ------------
 int pf_arp_callback(char*, int);

@@ -7,7 +7,7 @@ OBJCPP		=	$(subst .cpp,.o,$(SRC))
 OBJ			=	$(subst .c,.o,$(OBJCPP))
 
 INCPATH		=	-I/usr/include/ -I./inc/
-LIBS		=	-L/usr/lib -lc
+LIBS		=	-L/usr/lib -lc -lpthread
 
 vpath %.c src/
 vpath %.cpp src/
