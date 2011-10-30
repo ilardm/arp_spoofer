@@ -27,6 +27,7 @@
 /* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "pf.h"
 
@@ -60,14 +61,37 @@ int main(int argc, char** argv)
 		fprintf(stderr, "-- PF init error\n");
 		return 1;	// TODO: exit code enum
 	}
-	
-	if ( pf_start(prop) != 0 )
-	{
-		fprintf(stderr, "-- PF start error\n");
-		pf_deinit(prop);
 
-		return 1;	// TODO: exit code enum
-	}
+	// console
+	// TODO: init, start, stop here
+	char line[128];
+	memset( line, 0, 128 );
+	do
+	{
+		printf("> ");
+		scanf( "%s", line );
+
+		if ( strcmp( line, "start" ) == 0 )
+		{
+			if ( pf_start(prop) != 0 )
+			{
+				fprintf(stderr, "-- PF start error\n");
+				pf_deinit(prop);
+
+				return 1;	// TODO: exit code enum
+			}
+
+			continue;
+		}
+	} while ( strcmp( line, "stop" ) != 0 );
+
+	/* if ( pf_start(prop) != 0 ) */
+	/* { */
+	/* 	fprintf(stderr, "-- PF start error\n"); */
+	/* 	pf_deinit(prop); */
+
+	/* 	return 1;	// TODO: exit code enum */
+	/* } */
 
 	if ( pf_stop() != 0 )
 	{
