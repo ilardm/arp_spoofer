@@ -29,7 +29,9 @@
 #ifndef PF_H
 #define PF_H
 
+// FIXME: headers
 #include <pthread.h>
+#include <sys/types.h>
 
 typedef struct PF_CALLBACKS
 {
