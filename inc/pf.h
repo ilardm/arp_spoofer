@@ -33,8 +33,8 @@
 
 typedef struct PF_CALLBACKS
 {
-	int packet_type;
-	int (*callback)(char*, int);
+	u_int16_t packet_type;
+	int (*callback)(unsigned char*, int);
 
 	struct PF_CALLBACKS *next;
 } PF_CALLBACKS;
@@ -58,6 +58,6 @@ void* pf_reciever(void*);
 void pf_printXpack(unsigned char*, int);
 
 // ------------
-int pf_arp_callback(char*, int);
+int pf_arp_callback(unsigned char*, int);
 
 #endif
