@@ -216,7 +216,7 @@ void* pf_reciever(void* args)
 	int mtu = prop->mtu;
 	char* shutdown = &(prop->shutdown);
 
-	char* rcvbuf = (char*)calloc( 1, prop->mtu );
+	unsigned char* rcvbuf = (unsigned char*)calloc( 1, prop->mtu );
 	if ( !rcvbuf )
 	{
 		fprintf( stderr, "-- can't allocate rcvbuf\n");
@@ -249,10 +249,12 @@ void* pf_reciever(void* args)
 				errno, strerror(errno) );
 			break;
 		}
-		printf("recvfrom: %d\n", rcvlen);
+		printf("----------\trecvfrom: %d\n", rcvlen);
+		pf_printXpack(rcvbuf, rcvlen);
+		printf("\n");
 
 		#ifdef _DEBUG
-		//usleep( 500 );
+		usleep( 500 );
 		#endif
 	}
 
@@ -260,6 +262,47 @@ void* pf_reciever(void* args)
 	free( rcvbuf );
 
 	return NULL;
+}
+
+void pf_printXpack(unsigned char* _data, int _len)
+{
+	#ifdef _DEBUG
+	printf("== %s\n",
+		__PRETTY_FUNCTION__
+		);
+	#endif
+
+	if ( !_data || _len <=0 )
+	{
+		return;
+	}
+
+	int i = 0;
+	do
+	{
+		if ( i%16 == 0 )
+		{
+			printf("\t0x%04X: ", i);
+		}
+
+		if ( i%2 == 0 )
+		{
+			printf("%02x", _data[i]);
+		}
+		else
+		{
+			printf("%02x ", _data[i]);
+		}
+
+		if ( (i+1)%16 == 0 )
+		{
+			printf("\n");
+		}
+
+		i++;
+	} while ( i<_len );
+
+	printf("\n");
 }
 
 int pf_arp_callback(char* _packet, int _len)

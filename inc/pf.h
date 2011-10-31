@@ -55,6 +55,7 @@ int pf_start(PF_PROPERTIES*);
 int pf_stop(PF_PROPERTIES*);
 
 void* pf_reciever(void*);
+void pf_printXpack(unsigned char*, int);
 
 // ------------
 int pf_arp_callback(char*, int);
