@@ -26,36 +26,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef PF_H
-#define PF_H
+#ifndef SPOOFER_H
+#define SPOOFER_H
 
-// FIXME: headers
-#include <pthread.h>
-#include <sys/types.h>
-
-typedef struct PF_CALLBACKS
-{
-	u_int16_t packet_type;
-	int (*callback)(unsigned char*, int);
-
-	struct PF_CALLBACKS *next;
-} PF_CALLBACKS;
-
-typedef struct PF_PROPERTIES
-{
-	int sock;
-	int mtu;
-	PF_CALLBACKS* hooks;
-
-	char shutdown;
-	pthread_t pf_thrd;
-} PF_PROPERTIES;
-
-PF_PROPERTIES* pf_init(char*);
-int pf_deinit(PF_PROPERTIES*);
-int pf_start(PF_PROPERTIES*);
-int pf_stop(PF_PROPERTIES*);
-
-void* pf_reciever(void*);
+int spf_arp_callback(unsigned char*, int);
 
 #endif

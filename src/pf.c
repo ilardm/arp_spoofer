@@ -44,6 +44,8 @@
 #include <netpacket/packet.h>	// sockaddr_ll
 
 #include "pf.h"
+#include "utils.h"
+#include "spoofer.h"
 
 PF_PROPERTIES* pf_init(char* _devname)
 {
@@ -76,7 +78,7 @@ PF_PROPERTIES* pf_init(char* _devname)
 		return NULL;
 	}
 	clb_root->packet_type = ETHERTYPE_ARP;
-	clb_root->callback = &pf_arp_callback;
+	clb_root->callback = &spf_arp_callback;
 
 	prop->hooks = clb_root;
 
@@ -280,60 +282,4 @@ void* pf_reciever(void* args)
 	free( rcvbuf );
 
 	return NULL;
-}
-
-void pf_printXpack(unsigned char* _data, int _len)
-{
-	#ifdef _DEBUG
-	printf("== %s\n",
-		__PRETTY_FUNCTION__
-		);
-	#endif
-
-	if ( !_data || _len <=0 )
-	{
-		return;
-	}
-
-	int i = 0;
-	do
-	{
-		if ( i%16 == 0 )
-		{
-			printf("\t0x%04X: ", i);
-		}
-
-		if ( i%2 == 0 )
-		{
-			printf("%02x", _data[i]);
-		}
-		else
-		{
-			printf("%02x ", _data[i]);
-		}
-
-		if ( (i+1)%16 == 0 )
-		{
-			printf("\n");
-		}
-
-		i++;
-	} while ( i<_len );
-
-	printf("\n");
-}
-
-int pf_arp_callback(unsigned char* _packet, int _len)
-{
-#ifdef _DEBUG
-	printf("== %s\n",
-		__PRETTY_FUNCTION__
-		);
-#endif
-
-	// TODO: 
-	pf_printXpack( _packet, _len );
-	printf("\n");
-
-	return 1;
 }
