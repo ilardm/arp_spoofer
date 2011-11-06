@@ -50,6 +50,11 @@ int main(int argc, char** argv)
 	if ( argc < 2 )
 	{
 		printf("not enought params\n");
+
+		printf("usage:\t%s <iface>\n", argv[0]);
+		printf("\tiface\t-\tnetwork interface on which traffic will be spoofed\n");
+
+		printf("\n");
 		return 1;
 	}
 

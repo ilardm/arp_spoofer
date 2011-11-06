@@ -274,10 +274,6 @@ void* pf_reciever(void* args)
 			
 			clb_cur = clb_cur->next;
 		}
-
-		#ifdef _DEBUG
-		usleep( 500 );
-		#endif
 	}
 
 	printf("++ leave pf thread\n");
