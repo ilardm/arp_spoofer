@@ -39,25 +39,13 @@ typedef struct ARP_PACKET_STRUCT
 {
 	struct ether_header	eth_hdr;
 	struct arphdr		arp_hdr;
-	union
+	struct arp_data	// FIXME: currently IPv4 only
 	{
-		struct arp_data
-		{
-			unsigned char shw[ETH_ALEN];
-			unsigned char sip[4];
-			unsigned char thw[ETH_ALEN];
-			unsigned char tip[4];
-		} arp_data;
-
-		struct arp_data6
-		{
-			unsigned char shw[ETH_ALEN];
-			unsigned char sip[6];
-			unsigned char thw[ETH_ALEN];
-			unsigned char tip[6];
-
-		} arp_data6;
-	} arp_data_u;
+		unsigned char shw[ETH_ALEN];
+		unsigned char sip[4];
+		unsigned char thw[ETH_ALEN];
+		unsigned char tip[4];
+	} arp_data;
 } ARP_PACKET;
 
 void u_hexout(unsigned char*, int);

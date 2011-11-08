@@ -14,12 +14,12 @@ LIBS		=	-L/usr/lib -lc -lpthread
 vpath %.c src/
 vpath %.cpp src/
 
-CC			=	clang
-CXX			=	clang++
-LNK			=	clang++
-# CC			=	gcc
-# CXX			=	g++
-# LNK			=	g++
+# CC			=	clang
+# CXX			=	clang++
+# LNK			=	clang++
+CC			=	gcc
+CXX			=	g++
+LNK			=	g++
 
 CFLAGS		=	-c -Wall
 DFLAGS		=	-g -O0 -D_DEBUG

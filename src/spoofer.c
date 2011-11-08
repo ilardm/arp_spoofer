@@ -66,20 +66,20 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 	{
 		// ARP request
 		printf("who has %s (%s) tell %s (%s)\n",
-			u_ip2str( pack->arp_data_u.arp_data.tip, 4, tip, BUFSZ ),
-			u_hw2str( pack->arp_data_u.arp_data.thw, ETH_ALEN, thw, BUFSZ ),
-			u_ip2str( pack->arp_data_u.arp_data.sip, 4, sip, BUFSZ ),
-			u_hw2str( pack->arp_data_u.arp_data.shw, ETH_ALEN, shw, BUFSZ )
+			u_ip2str( pack->arp_data.tip, 4, tip, BUFSZ ),
+			u_hw2str( pack->arp_data.thw, ETH_ALEN, thw, BUFSZ ),
+			u_ip2str( pack->arp_data.sip, 4, sip, BUFSZ ),
+			u_hw2str( pack->arp_data.shw, ETH_ALEN, shw, BUFSZ )
 			);
 	}
 	else if ( ntohs(pack->arp_hdr.ar_op) == ARPOP_REPLY )
 	{
 		// ARP reply
 		printf("%s is at %s -> %s (%s)\n",
-			u_ip2str( pack->arp_data_u.arp_data.sip, 4, sip, BUFSZ ),
-			u_hw2str( pack->arp_data_u.arp_data.shw, ETH_ALEN, shw, BUFSZ ),
-			u_ip2str( pack->arp_data_u.arp_data.tip, 4, tip, BUFSZ ),
-			u_hw2str( pack->arp_data_u.arp_data.thw, ETH_ALEN, thw, BUFSZ )
+			u_ip2str( pack->arp_data.sip, 4, sip, BUFSZ ),
+			u_hw2str( pack->arp_data.shw, ETH_ALEN, shw, BUFSZ ),
+			u_ip2str( pack->arp_data.tip, 4, tip, BUFSZ ),
+			u_hw2str( pack->arp_data.thw, ETH_ALEN, thw, BUFSZ )
 			);
 
 	}

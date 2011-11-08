@@ -169,7 +169,15 @@ int pf_start(PF_PROPERTIES* _properties)
 		);
 #endif
 
-	// TODO
+	if ( !_properties )
+	{
+		return 1;
+	}
+
+	pthread_mutex_lock( &pfproperties_shutdownMX );
+	_properties->shutdown = 0;
+	pthread_mutex_unlock( &pfproperties_shutdownMX );
+
 	int es = pthread_create( &(_properties->pf_thrd), NULL, pf_reciever, (void*)_properties );
 	if ( es != 0 )
 	{
@@ -200,7 +208,10 @@ int pf_stop(PF_PROPERTIES* _properties)
 	// TODO
 	if ( _properties->pf_thrd )
 	{
+		pthread_mutex_lock( &pfproperties_shutdownMX );
 		_properties->shutdown = 1;
+		pthread_mutex_unlock( &pfproperties_shutdownMX );
+
 		pthread_join( _properties->pf_thrd, NULL );
 
 		return 0;
@@ -220,6 +231,7 @@ void* pf_reciever(void* args)
 	int sock = prop->sock;
 	int mtu = prop->mtu;
 	char* shutdown = &(prop->shutdown);
+	char shutdownLocal = 0;
 	PF_CALLBACKS* clb_root = prop->hooks;
 	PF_CALLBACKS* clb_cur = NULL;
 
@@ -241,7 +253,15 @@ void* pf_reciever(void* args)
 	while ( 1 )
 	{
 		// TODO: Critical section
+		shutdownLocal = 0;
+		pthread_mutex_lock( &pfproperties_shutdownMX );
 		if ( *shutdown )
+		{
+			//break;
+			shutdownLocal = 1;
+		}
+		pthread_mutex_unlock( &pfproperties_shutdownMX );
+		if ( shutdownLocal )
 		{
 			break;
 		}

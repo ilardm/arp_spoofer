@@ -50,6 +50,7 @@ typedef struct PF_PROPERTIES
 	char shutdown;
 	pthread_t pf_thrd;
 } PF_PROPERTIES;
+static pthread_mutex_t pfproperties_shutdownMX = PTHREAD_MUTEX_INITIALIZER;
 
 PF_PROPERTIES* pf_init(char*);
 int pf_deinit(PF_PROPERTIES*);
