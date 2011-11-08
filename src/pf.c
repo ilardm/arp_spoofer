@@ -250,6 +250,7 @@ void* pf_reciever(void* args)
 		/* printf("++ %s\n", __PRETTY_FUNCTION__); */
 		// TODO: select()
 		memset( &pack_info, 0, sizeof(struct sockaddr) );
+		pack_info_len = sizeof(pack_info);
 		rcvlen = recvfrom( sock, rcvbuf, mtu,
 							0, &pack_info, &pack_info_len );
 

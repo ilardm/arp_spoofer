@@ -29,6 +29,40 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <sys/types.h>
+#include <net/ethernet.h>
+#include <net/if_arp.h>
+
+#define BUFSZ 256
+
+typedef struct ARP_PACKET_STRUCT
+{
+	struct ether_header	eth_hdr;
+	struct arphdr		arp_hdr;
+	union
+	{
+		struct arp_data
+		{
+			unsigned char shw[ETH_ALEN];
+			unsigned char sip[4];
+			unsigned char thw[ETH_ALEN];
+			unsigned char tip[4];
+		} arp_data;
+
+		struct arp_data6
+		{
+			unsigned char shw[ETH_ALEN];
+			unsigned char sip[6];
+			unsigned char thw[ETH_ALEN];
+			unsigned char tip[6];
+
+		} arp_data6;
+	} arp_data_u;
+} ARP_PACKET;
+
 void u_hexout(unsigned char*, int);
+
+char* u_hw2str(u_int8_t*, int, char*, size_t);
+char* u_ip2str(unsigned char*, int, char*, size_t);
 
 #endif

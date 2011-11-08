@@ -26,6 +26,10 @@
 /* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE */
 /* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
+#include <stdio.h>
+#include <arpa/inet.h>	// ntohs
+#include <memory.h>
+
 #include "spoofer.h"
 #include "utils.h"
 
@@ -37,8 +41,58 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 		);
 #endif
 
-	// TODO: 
-	u_hexout( _packet, _len );
+	ARP_PACKET* pack = (ARP_PACKET*)_packet;
+
+	char shw[BUFSZ];
+	char thw[BUFSZ];
+	char sip[BUFSZ];
+	char tip[BUFSZ];
+	memset( shw, 0, sizeof(shw) );
+	memset( thw, 0, sizeof(thw) );
+	memset( sip, 0, sizeof(sip) );
+	memset( tip, 0, sizeof(tip) );
+
+	printf("eth: %s -> %s (%04x)\n",
+		u_hw2str( pack->eth_hdr.ether_shost, ETH_ALEN, shw, BUFSZ ),
+		u_hw2str( pack->eth_hdr.ether_dhost, ETH_ALEN, thw, BUFSZ ),
+		ntohs( pack->eth_hdr.ether_type )
+		);
+	
+	memset( shw, 0, sizeof(shw) );
+	memset( thw, 0, sizeof(thw) );
+
+	printf("arp: ");
+	if ( ntohs(pack->arp_hdr.ar_op) == ARPOP_REQUEST )
+	{
+		// ARP request
+		printf("who has %s (%s) tell %s (%s)\n",
+			u_ip2str( pack->arp_data_u.arp_data.tip, 4, tip, BUFSZ ),
+			u_hw2str( pack->arp_data_u.arp_data.thw, ETH_ALEN, thw, BUFSZ ),
+			u_ip2str( pack->arp_data_u.arp_data.sip, 4, sip, BUFSZ ),
+			u_hw2str( pack->arp_data_u.arp_data.shw, ETH_ALEN, shw, BUFSZ )
+			);
+	}
+	else if ( ntohs(pack->arp_hdr.ar_op) == ARPOP_REPLY )
+	{
+		// ARP reply
+		printf("%s is at %s -> %s (%s)\n",
+			u_ip2str( pack->arp_data_u.arp_data.sip, 4, sip, BUFSZ ),
+			u_hw2str( pack->arp_data_u.arp_data.shw, ETH_ALEN, shw, BUFSZ ),
+			u_ip2str( pack->arp_data_u.arp_data.tip, 4, tip, BUFSZ ),
+			u_hw2str( pack->arp_data_u.arp_data.thw, ETH_ALEN, thw, BUFSZ )
+			);
+
+	}
+	else
+	{
+		printf("unknown opcode\n");
+
+		#ifdef _DEBUG
+		printf("hex:");
+		u_hexout( _packet, _len );
+		#endif
+	}
+
 	printf("\n");
 
 	return 1;

@@ -27,16 +27,17 @@
 /* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include <stdio.h>
+#include <sys/types.h>
 
 #include "utils.h"
 
 void u_hexout(unsigned char* _data, int _len)
 {
-	#ifdef _DEBUG
-	printf("== %s\n",
-		__PRETTY_FUNCTION__
-		);
-	#endif
+	/* #ifdef _DEBUG */
+	/* printf("== %s\n", */
+	/* 	__PRETTY_FUNCTION__ */
+	/* 	); */
+	/* #endif */
 
 	if ( !_data || _len <=0 )
 	{
@@ -69,4 +70,59 @@ void u_hexout(unsigned char* _data, int _len)
 	} while ( i<_len );
 
 	printf("\n");
+}
+
+char* u_hw2str(u_int8_t* _addr, int _addrlen, char* _buf, size_t _bufsz)
+{
+	if ( !_addr || !_buf || _bufsz < ( _addrlen*2 + _addrlen-1 + 1 ) )
+	{
+		if ( _buf )
+		{
+			snprintf( _buf, 8, "(%s)", "error" );
+		}
+	}
+	else
+	{
+		int i = 0;
+		for ( i = 0; i < _addrlen; i++ )
+		{
+			if ( i != _addrlen-1 )
+			{
+				sprintf( _buf + (i*3), "%02x:", _addr[i] );
+			}
+			else
+			{
+				sprintf( _buf + (i*3), "%02x", _addr[i] );
+			}
+		}
+	}
+
+	return _buf;
+}
+
+char* u_ip2str(unsigned char* _addr, int _addrlen, char* _buf, size_t _bufsz)
+{
+	if ( !_addr || !_buf || _bufsz < ( _addrlen*3 + _addrlen-1 + 1 ) )
+	{
+		if ( _buf )
+		{
+			snprintf( _buf, 8, "(%s)", "error" );
+		}
+	}
+	else
+	{
+		int i = 0;
+		for ( i = 0; i < _addrlen; i++ )
+		{
+			if ( i != _addrlen-1 )
+			{
+				sprintf( _buf + (i*4), "%03d.", _addr[i] );
+			}
+			else
+			{
+				sprintf( _buf + (i*4), "%03d", _addr[i] );
+			}
+		}
+	}
+	return _buf;
 }
