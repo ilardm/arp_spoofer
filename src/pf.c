@@ -174,9 +174,14 @@ int pf_start(PF_PROPERTIES* _properties)
 		return 1;
 	}
 
-	pthread_mutex_lock( &pfproperties_shutdownMX );
+	if ( _properties->pf_thrd )
+	{
+		return 0;
+	}
+
+	pthread_mutex_lock( &pfpropertiesMX );
 	_properties->shutdown = 0;
-	pthread_mutex_unlock( &pfproperties_shutdownMX );
+	pthread_mutex_unlock( &pfpropertiesMX );
 
 	int es = pthread_create( &(_properties->pf_thrd), NULL, pf_reciever, (void*)_properties );
 	if ( es != 0 )
@@ -208,9 +213,9 @@ int pf_stop(PF_PROPERTIES* _properties)
 	// TODO
 	if ( _properties->pf_thrd )
 	{
-		pthread_mutex_lock( &pfproperties_shutdownMX );
+		pthread_mutex_lock( &pfpropertiesMX );
 		_properties->shutdown = 1;
-		pthread_mutex_unlock( &pfproperties_shutdownMX );
+		pthread_mutex_unlock( &pfpropertiesMX );
 
 		pthread_join( _properties->pf_thrd, NULL );
 
@@ -258,13 +263,13 @@ void* pf_reciever(void* args)
 	while ( 1 )
 	{
 		shutdownLocal = 0;
-		pthread_mutex_lock( &pfproperties_shutdownMX );
+		pthread_mutex_lock( &pfpropertiesMX );
 		if ( *shutdown )
 		{
 			//break;
 			shutdownLocal = 1;
 		}
-		pthread_mutex_unlock( &pfproperties_shutdownMX );
+		pthread_mutex_unlock( &pfpropertiesMX );
 		if ( shutdownLocal )
 		{
 			break;
@@ -309,6 +314,7 @@ void* pf_reciever(void* args)
 				}
 			}
 		}
+		usleep(50);
 	}
 
 	printf("++ leave pf thread\n");

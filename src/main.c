@@ -66,6 +66,14 @@ int main(int argc, char** argv)
 		fprintf(stderr, "-- PF init error\n");
 		return 1;	// TODO: exit code enum
 	}
+	
+	if ( pf_start(prop) !=0 )
+	{
+		fprintf( stderr, "-- PF autostart error\n" );
+		pf_deinit(prop);
+
+		return 1;
+	}
 
 	// console
 	// TODO: init, start, stop here
@@ -81,14 +89,24 @@ int main(int argc, char** argv)
 			if ( pf_start(prop) != 0 )
 			{
 				fprintf(stderr, "-- PF start error\n");
-				pf_deinit(prop);
+				//pf_deinit(prop);
 
-				return 1;	// TODO: exit code enum
+				//return 1;	// TODO: exit code enum
 			}
 
 			continue;
 		}
-	} while ( strcmp( line, "stop" ) != 0 );
+
+		if ( strcmp( line, "stop" ) == 0 )
+		{
+			if ( pf_stop(prop) != 0 )
+			{
+				fprintf(stderr, "-- PF stop error\n");
+			}
+
+			continue;
+		}
+	} while ( strcmp( line, "exit" ) != 0 );
 
 	/* if ( pf_start(prop) != 0 ) */
 	/* { */
