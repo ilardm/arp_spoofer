@@ -229,6 +229,8 @@ void* pf_reciever(void* args)
 		return NULL;
 	}
 	int sock = prop->sock;
+	fd_set fds;
+	struct timeval tv;
 	int mtu = prop->mtu;
 	char* shutdown = &(prop->shutdown);
 	char shutdownLocal = 0;
@@ -241,6 +243,9 @@ void* pf_reciever(void* args)
 		fprintf( stderr, "-- can't allocate rcvbuf\n");
 	}
 
+	tv.tv_sec = 0;
+	tv.tv_usec = 50;
+
 	int rcvlen = 0;
 	struct sockaddr pack_info;
 	socklen_t pack_info_len;
@@ -252,7 +257,6 @@ void* pf_reciever(void* args)
 
 	while ( 1 )
 	{
-		// TODO: Critical section
 		shutdownLocal = 0;
 		pthread_mutex_lock( &pfproperties_shutdownMX );
 		if ( *shutdown )
@@ -266,36 +270,44 @@ void* pf_reciever(void* args)
 			break;
 		}
 
-		// TODO: recieve packets and process 'em
-		/* printf("++ %s\n", __PRETTY_FUNCTION__); */
-		// TODO: select()
-		memset( &pack_info, 0, sizeof(struct sockaddr) );
-		pack_info_len = sizeof(pack_info);
-		rcvlen = recvfrom( sock, rcvbuf, mtu,
-							0, &pack_info, &pack_info_len );
-
-		if ( rcvlen == -1 )
+		FD_ZERO( &fds );
+		FD_SET( sock, &fds );
+		if ( select( (sock+1), &fds, NULL, NULL, &tv )>0 )
 		{
-			fprintf(stderr, "-- err on rcvfrom: (%d) %s\n",
-				errno, strerror(errno) );
-			break;
-		}
-		ethhdr = (struct ether_header *)rcvbuf;
-		//printf("----------\trecvfrom (%04x): %d\n", ethhdr->ether_type, rcvlen);
-		//pf_printXpack(rcvbuf, rcvlen);
-		//printf("\n");
-
-		packtype = ntohs( ethhdr->ether_type );
-		clb_cur = clb_root;
-		while ( clb_cur )
-		{
-			if ( clb_cur->packet_type == packtype )
+			if ( FD_ISSET( sock, &fds ) )
 			{
-				clb_cur->callback( rcvbuf, rcvlen );
-				break;
+				// TODO: recieve packets and process 'em
+				/* printf("++ %s\n", __PRETTY_FUNCTION__); */
+				// TODO: select()
+				memset( &pack_info, 0, sizeof(struct sockaddr) );
+				pack_info_len = sizeof(pack_info);
+				rcvlen = recvfrom( sock, rcvbuf, mtu,
+									0, &pack_info, &pack_info_len );
+
+				if ( rcvlen == -1 )
+				{
+					fprintf(stderr, "-- err on rcvfrom: (%d) %s\n",
+						errno, strerror(errno) );
+					break;
+				}
+				ethhdr = (struct ether_header *)rcvbuf;
+				/* printf("----------\trecvfrom (%04x): %d\n", ethhdr->ether_type, rcvlen); */
+				/* u_hexout(rcvbuf, rcvlen); */
+				/* printf("\n"); */
+
+				packtype = ntohs( ethhdr->ether_type );
+				clb_cur = clb_root;
+				while ( clb_cur )
+				{
+					if ( clb_cur->packet_type == packtype )
+					{
+						clb_cur->callback( rcvbuf, rcvlen );
+						break;
+					}
+					
+					clb_cur = clb_cur->next;
+				}
 			}
-			
-			clb_cur = clb_cur->next;
 		}
 	}
 
