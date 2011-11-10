@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <arpa/inet.h>	// ntohs
 #include <memory.h>
+#include <time.h>
 
 #include "spoofer.h"
 #include "utils.h"
@@ -91,6 +92,14 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 		printf("hex:");
 		u_hexout( _packet, _len );
 		#endif
+
+		char fname[BUFSZ];
+		memset( fname, 0, BUFSZ );
+		sprintf( fname, "packet-%ld", time(NULL) );
+
+		FILE* fd = fopen( fname, "ab" );
+		fwrite( _packet, sizeof(unsigned char), _len, fd );
+		fclose(fd);
 	}
 
 	printf("\n");
