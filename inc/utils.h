@@ -53,4 +53,7 @@ void u_hexout(unsigned char*, int);
 char* u_hw2str(u_int8_t*, int, char*, size_t);
 char* u_ip2str(unsigned char*, int, char*, size_t);
 
+u_int8_t* u_str2hw(char*, size_t, u_int8_t*, int);
+unsigned char* u_str2ip(char*, size_t, unsigned char*, int);
+
 #endif

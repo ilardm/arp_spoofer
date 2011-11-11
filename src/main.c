@@ -31,6 +31,10 @@
 
 #include "pf.h"
 
+//
+#include "utils.h"
+#include "malloc.h"
+
 int main(int argc, char** argv)
 {
 	/* copyrights and version info */
@@ -105,6 +109,37 @@ int main(int argc, char** argv)
 			}
 
 			continue;
+		}
+
+		if ( strcmp( line, "2hw" ) == 0 )
+		{
+			printf( "input hwaddr: ");
+			scanf( "%s", line );
+			u_int8_t* addr = (u_int8_t*)calloc( ETH_ALEN, sizeof(u_int8_t) );
+			if ( u_str2hw( line, strlen(line), addr, ETH_ALEN ) )
+			{
+				u_hexout( addr, sizeof(u_int8_t)*ETH_ALEN );
+			}
+			else
+			{
+				fprintf( stderr, "-- u_str2hw failed\n");
+			}
+			free(addr);
+		}
+		if ( strcmp( line, "2ip" ) == 0 )
+		{
+			printf( "input ip addr: ");
+			scanf( "%s", line );
+			unsigned char* addr = (unsigned char*)calloc( 4, sizeof(unsigned char) );
+			if ( u_str2ip( line, strlen(line), addr, 4 ) )
+			{
+				u_hexout( addr, sizeof(unsigned char)*4 );
+			}
+			else
+			{
+				fprintf( stderr, "-- u_str2ip failed\n");
+			}
+			free(addr);
 		}
 	} while ( strcmp( line, "exit" ) != 0 );
 

@@ -27,7 +27,9 @@
 /* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
+#include <string.h>
 
 #include "utils.h"
 
@@ -74,6 +76,7 @@ void u_hexout(unsigned char* _data, int _len)
 
 char* u_hw2str(u_int8_t* _addr, int _addrlen, char* _buf, size_t _bufsz)
 {
+	// bufsz: aa:bb:cc:dd:ee:ff => aa*2(symbols) + :*5 + 0x00(EOS)
 	if ( !_addr || !_buf || _bufsz < ( _addrlen*2 + _addrlen-1 + 1 ) )
 	{
 		if ( _buf )
@@ -125,4 +128,73 @@ char* u_ip2str(unsigned char* _addr, int _addrlen, char* _buf, size_t _bufsz)
 		}
 	}
 	return _buf;
+}
+
+u_int8_t* u_str2hw(char* _buf, size_t _buflen, u_int8_t* _addr, int _addrlen)
+{
+	// bufsz: aa:bb:cc:dd:ee:ff => aa*2(symbols) + :*5 + 0x00(EOS)
+	if ( !_addr || !_buf || _addrlen < ETH_ALEN || _buflen < ( _addrlen*2 + _addrlen-1 ) )
+	{
+		return NULL;
+	}
+	else
+	{
+		int i = 0;
+		int j = 0;
+		unsigned int part = 0;
+		for ( i = 0; i < _buflen; i+=3 )
+		{
+			if ( j > _addrlen )
+			{
+				break;
+			}
+
+			sscanf( _buf+i, "%02x", &part );
+			*(_addr+j) = ( part & 0xFF );
+			j++;
+		}
+	}
+
+	return _addr;
+}
+
+unsigned char* u_str2ip(char* _buf, size_t _buflen, unsigned char* _addr, int _addrlen)
+{
+	// TODO: is buf len here valid ?
+	if ( !_addr || !_buf ||
+		_addrlen < sizeof(unsigned char)*4 ||
+		_buflen < ( _addrlen + _addrlen-1 )
+		)
+	{
+		return NULL;
+	}
+	else
+	{
+		char* pcur = _buf;
+		char* pdot = strstr( _buf, "." );
+		unsigned int part = 0;
+		int p = 0;
+
+		// FIXME: ugly cycle; no overflow chec
+		while ( pcur )
+		{
+			if ( pdot )
+			{
+				*pdot = 0x00;
+			}
+			sscanf( pcur,  "%d", &part );
+			*( _addr+p ) = ( part & 0xFF );
+
+			if ( !pdot )
+			{
+				break;
+			}
+			pcur = pdot + 1;
+			pdot = strstr( pcur, "." );
+			p++;
+		}
+	}
+
+	// FIXME:
+	return _addr;
 }
