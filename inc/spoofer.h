@@ -30,5 +30,6 @@
 #define SPOOFER_H
 
 int spf_arp_callback(unsigned char*, int);
+int spf_ip_callback(unsigned char*, int);
 
 #endif

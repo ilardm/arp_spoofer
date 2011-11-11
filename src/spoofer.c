@@ -42,6 +42,11 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 		);
 #endif
 
+	if ( !_packet || _len < 0 )
+	{
+		return 1;
+	}
+
 	ARP_PACKET* pack = (ARP_PACKET*)_packet;
 
 	char shw[BUFSZ];
@@ -104,5 +109,23 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 
 	printf("\n");
 
-	return 1;
+	return 0;
+}
+
+int spf_ip_callback(unsigned char* _packet, int _len)
+{
+#ifdef _DEBUG
+	printf("== %s\n",
+		__PRETTY_FUNCTION__
+		);
+#endif
+
+	if ( !_packet || _len < 0 )
+	{
+		return 1;
+	}
+
+	u_hexout( _packet, _len );
+
+	return 0;
 }

@@ -65,23 +65,6 @@ PF_PROPERTIES* pf_init(char* _devname)
 		return NULL;
 	}
 
-	// set up callbacks
-	PF_CALLBACKS* clb_root = (PF_CALLBACKS*)calloc(1, sizeof(PF_CALLBACKS));
-	if ( !clb_root )
-	{
-		fprintf( stderr, "-- error in callbacks allocation\n" );
-		if ( prop )
-		{
-			free(prop);
-		}
-		free(clb_root);
-		return NULL;
-	}
-	clb_root->packet_type = ETHERTYPE_ARP;
-	clb_root->callback = &spf_arp_callback;
-
-	prop->hooks = clb_root;
-
 	// create socket
 	prop->sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if ( prop->sock == -1 )
@@ -131,6 +114,47 @@ PF_PROPERTIES* pf_init(char* _devname)
 	}
 
 	return prop;
+}
+
+int pf_add_callback(PF_PROPERTIES* _properties, u_int16_t _ptype, int (*_callback)(unsigned char*, int))
+{
+#ifdef _DEBUG
+	printf("== %s\n",
+		__PRETTY_FUNCTION__
+		);
+#endif
+
+	if ( !_properties )
+	{
+		return 1;
+	}
+
+	// set up callbacks
+	if ( !(_properties->hooks) )
+	{
+		PF_CALLBACKS* clb_root = (PF_CALLBACKS*)calloc(1, sizeof(PF_CALLBACKS));
+		if ( !clb_root )
+		{
+			fprintf( stderr, "-- error in callbacks allocation\n" );
+			return 1;
+		}
+		_properties->hooks = clb_root;
+	}
+
+	PF_CALLBACKS* pcur = _properties->hooks;
+	PF_CALLBACKS* pprev = _properties->hooks;
+
+	while ( pcur )
+	{
+		pprev = pcur;
+		pcur = pcur->next;
+	}
+	pcur = pprev;
+
+	pcur->packet_type = _ptype;
+	pcur->callback = _callback;
+
+	return 0;
 }
 
 int pf_deinit(PF_PROPERTIES* _properties)

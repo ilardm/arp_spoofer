@@ -53,6 +53,7 @@ typedef struct PF_PROPERTIES
 static pthread_mutex_t pfpropertiesMX = PTHREAD_MUTEX_INITIALIZER;
 
 PF_PROPERTIES* pf_init(char*);
+int pf_add_callback(PF_PROPERTIES*, u_int16_t, int (*_callback)(unsigned char*, int));
 int pf_deinit(PF_PROPERTIES*);
 int pf_start(PF_PROPERTIES*);
 int pf_stop(PF_PROPERTIES*);

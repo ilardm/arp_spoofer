@@ -28,8 +28,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <net/ethernet.h>			// ETHERTYPE_ARP
 
 #include "pf.h"
+#include "spoofer.h"
 
 //
 #include "utils.h"
@@ -62,13 +64,25 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	// TODO
+	// TODO: memleaks on init error
 	PF_PROPERTIES* prop = pf_init( argv[1] );
 	
 	if ( !prop )
 	{
 		fprintf(stderr, "-- PF init error\n");
 		return 1;	// TODO: exit code enum
+	}
+
+	// register callbacks
+	if ( pf_add_callback( prop, ETHERTYPE_ARP, &spf_arp_callback ) !=0 )
+	{
+		fprintf(stderr, "-- PF add arp callback error\n");
+		return 1;
+	}
+	if ( pf_add_callback( prop, ETHERTYPE_IP, &spf_ip_callback ) !=0 )
+	{
+		fprintf(stderr, "-- PF add ip callback error\n");
+		return 1;
 	}
 	
 	if ( pf_start(prop) !=0 )
