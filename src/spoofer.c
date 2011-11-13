@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <arpa/inet.h>	// ntohs
+#include <netinet/ether.h>	// ether_ntoa
 #include <memory.h>
 #include <time.h>
 
@@ -49,6 +50,14 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 
 	ARP_PACKET* pack = (ARP_PACKET*)_packet;
 
+	struct ether_addr	eshw;
+	struct ether_addr	edhw;
+	
+	struct ether_addr	ashw;
+	struct ether_addr	athw;
+	struct in_addr		asip;
+	struct in_addr		atip;
+
 	char shw[BUFSZ];
 	char thw[BUFSZ];
 	char sip[BUFSZ];
@@ -58,34 +67,44 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 	memset( sip, 0, sizeof(sip) );
 	memset( tip, 0, sizeof(tip) );
 
+	// ethernet part
+	memcpy( eshw.ether_addr_octet, pack->eth_hdr.ether_shost, sizeof(pack->eth_hdr.ether_shost) );
+	memcpy( edhw.ether_addr_octet, pack->eth_hdr.ether_dhost, sizeof(pack->eth_hdr.ether_dhost) );
+
 	printf("eth: %s -> %s (%04x)\n",
-		u_hw2str( pack->eth_hdr.ether_shost, ETH_ALEN, shw, BUFSZ ),
-		u_hw2str( pack->eth_hdr.ether_dhost, ETH_ALEN, thw, BUFSZ ),
+		u_hw2str( &eshw, shw, BUFSZ ),
+		u_hw2str( &edhw, thw, BUFSZ ),
 		ntohs( pack->eth_hdr.ether_type )
 		);
 	
+	// arp part
 	memset( shw, 0, sizeof(shw) );
 	memset( thw, 0, sizeof(thw) );
+
+	memcpy( &ashw, pack->arp_data.shw, sizeof(pack->arp_data.shw) );
+	memcpy( &athw, pack->arp_data.thw, sizeof(pack->arp_data.thw) );
+	memcpy( &asip, pack->arp_data.sip, sizeof(pack->arp_data.sip) );
+	memcpy( &atip, pack->arp_data.tip, sizeof(pack->arp_data.tip) );
 
 	printf("arp: ");
 	if ( ntohs(pack->arp_hdr.ar_op) == ARPOP_REQUEST )
 	{
 		// ARP request
 		printf("who has %s (%s) tell %s (%s)\n",
-			u_ip2str( pack->arp_data.tip, 4, tip, BUFSZ ),
-			u_hw2str( pack->arp_data.thw, ETH_ALEN, thw, BUFSZ ),
-			u_ip2str( pack->arp_data.sip, 4, sip, BUFSZ ),
-			u_hw2str( pack->arp_data.shw, ETH_ALEN, shw, BUFSZ )
+			u_ip2str( &atip, tip, BUFSZ ),
+			u_hw2str( &athw, thw, BUFSZ ),
+			u_ip2str( &asip, sip, BUFSZ ),
+			u_hw2str( &ashw, shw, BUFSZ )
 			);
 	}
 	else if ( ntohs(pack->arp_hdr.ar_op) == ARPOP_REPLY )
 	{
 		// ARP reply
 		printf("%s is at %s -> %s (%s)\n",
-			u_ip2str( pack->arp_data.sip, 4, sip, BUFSZ ),
-			u_hw2str( pack->arp_data.shw, ETH_ALEN, shw, BUFSZ ),
-			u_ip2str( pack->arp_data.tip, 4, tip, BUFSZ ),
-			u_hw2str( pack->arp_data.thw, ETH_ALEN, thw, BUFSZ )
+			u_ip2str( &asip, sip, BUFSZ ),
+			u_hw2str( &ashw, shw, BUFSZ ),
+			u_ip2str( &atip, tip, BUFSZ ),
+			u_hw2str( &athw, thw, BUFSZ )
 			);
 
 	}
@@ -107,6 +126,7 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 		fclose(fd);
 	}
 
+	/* u_hexout( _packet, _len ); */
 	printf("\n");
 
 	return 0;
@@ -125,7 +145,7 @@ int spf_ip_callback(unsigned char* _packet, int _len)
 		return 1;
 	}
 
-	u_hexout( _packet, _len );
+	/* u_hexout( _packet, _len ); */
 
 	return 0;
 }

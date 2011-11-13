@@ -30,6 +30,9 @@
 #include <string.h>
 #include <net/ethernet.h>			// ETHERTYPE_ARP
 
+#include <netinet/ether.h>			// ether_aton
+#include <arpa/inet.h>				// inet_aton
+
 #include "pf.h"
 #include "spoofer.h"
 
@@ -79,11 +82,11 @@ int main(int argc, char** argv)
 		fprintf(stderr, "-- PF add arp callback error\n");
 		return 1;
 	}
-	if ( pf_add_callback( prop, ETHERTYPE_IP, &spf_ip_callback ) !=0 )
-	{
-		fprintf(stderr, "-- PF add ip callback error\n");
-		return 1;
-	}
+	/* if ( pf_add_callback( prop, ETHERTYPE_IP, &spf_ip_callback ) !=0 ) */
+	/* { */
+	/* 	fprintf(stderr, "-- PF add ip callback error\n"); */
+	/* 	return 1; */
+	/* } */
 	
 	if ( pf_start(prop) !=0 )
 	{
@@ -129,31 +132,34 @@ int main(int argc, char** argv)
 		{
 			printf( "input hwaddr: ");
 			scanf( "%s", line );
-			u_int8_t* addr = (u_int8_t*)calloc( ETH_ALEN, sizeof(u_int8_t) );
-			if ( u_str2hw( line, strlen(line), addr, ETH_ALEN ) )
+
+			struct ether_addr* eaddr = ether_aton( line );
+			if ( eaddr )
 			{
-				u_hexout( addr, sizeof(u_int8_t)*ETH_ALEN );
+				u_hexout( eaddr->ether_addr_octet, sizeof(eaddr->ether_addr_octet) );
 			}
 			else
 			{
-				fprintf( stderr, "-- u_str2hw failed\n");
+				fprintf(stderr, "-- ather_aton failed\n");
 			}
-			free(addr);
+
 		}
 		if ( strcmp( line, "2ip" ) == 0 )
 		{
 			printf( "input ip addr: ");
 			scanf( "%s", line );
-			unsigned char* addr = (unsigned char*)calloc( 4, sizeof(unsigned char) );
-			if ( u_str2ip( line, strlen(line), addr, 4 ) )
+
+			struct in_addr iaddr;
+			memset( &iaddr, 0, sizeof(iaddr) );
+			if ( inet_aton(line, &iaddr) )
 			{
-				u_hexout( addr, sizeof(unsigned char)*4 );
+				u_hexout( &(iaddr.s_addr), sizeof(iaddr.s_addr) );
 			}
 			else
 			{
-				fprintf( stderr, "-- u_str2ip failed\n");
+				fprintf(stderr, "-- inet_aton failed\n");
 			}
-			free(addr);
+
 		}
 	} while ( strcmp( line, "exit" ) != 0 );
 

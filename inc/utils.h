@@ -33,6 +33,9 @@
 #include <net/ethernet.h>
 #include <net/if_arp.h>
 
+#include <arpa/inet.h>		// inet_ntoa()
+#include <netinet/ether.h>	//ether_ntoa()
+
 #define BUFSZ 256
 
 typedef struct ARP_PACKET_STRUCT
@@ -48,12 +51,11 @@ typedef struct ARP_PACKET_STRUCT
 	} arp_data;
 } ARP_PACKET;
 
-void u_hexout(unsigned char*, int);
+void u_hexout(void*, int);
 
-char* u_hw2str(u_int8_t*, int, char*, size_t);
-char* u_ip2str(unsigned char*, int, char*, size_t);
-
-u_int8_t* u_str2hw(char*, size_t, u_int8_t*, int);
-unsigned char* u_str2ip(char*, size_t, unsigned char*, int);
+// inet_ntoa (3) ether_ntoa (3) uses statically allocated char buffers
+// following functions copying this buffer into passed as argument
+char* u_hw2str(struct ether_addr*, char*, size_t);
+char* u_ip2str(struct in_addr*, char*, size_t);
 
 #endif
