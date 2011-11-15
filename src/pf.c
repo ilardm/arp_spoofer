@@ -119,8 +119,11 @@ PF_PROPERTIES* pf_init(char* _devname)
 int pf_add_callback(PF_PROPERTIES* _properties, u_int16_t _ptype, int (*_callback)(unsigned char*, int))
 {
 #ifdef _DEBUG
-	printf("== %s\n",
-		__PRETTY_FUNCTION__
+	printf("== %s (0x%08x, %04x, 0x%08x)\n",
+		__PRETTY_FUNCTION__,
+		(unsigned int)_properties,
+		_ptype,
+		(unsigned int)_callback
 		);
 #endif
 
@@ -129,28 +132,39 @@ int pf_add_callback(PF_PROPERTIES* _properties, u_int16_t _ptype, int (*_callbac
 		return 1;
 	}
 
-	// set up callbacks
-	if ( !(_properties->hooks) )
-	{
-		PF_CALLBACKS* clb_root = (PF_CALLBACKS*)calloc(1, sizeof(PF_CALLBACKS));
-		if ( !clb_root )
-		{
-			fprintf( stderr, "-- error in callbacks allocation\n" );
-			return 1;
-		}
-		_properties->hooks = clb_root;
-	}
-
 	PF_CALLBACKS* pcur = _properties->hooks;
 	PF_CALLBACKS* pprev = _properties->hooks;
 
+	int i=0;
 	while ( pcur )
 	{
 		pprev = pcur;
 		pcur = pcur->next;
+		i++;
 	}
 	pcur = pprev;
 
+	PF_CALLBACKS* clb_new = (PF_CALLBACKS*)calloc(1, sizeof(PF_CALLBACKS));
+	if ( !clb_new )
+	{
+		fprintf( stderr, "-- error in new callback allocation\n" );
+		return 1;
+	}
+
+	if ( !pcur )
+	{
+		// no root callback
+		pcur = clb_new;
+		_properties->hooks = pcur;
+	}
+	else
+	{
+		// append tail callback
+		pcur->next = clb_new;
+		pcur = clb_new;
+	}
+
+	printf("++ add %d callback\n", i);
 	pcur->packet_type = _ptype;
 	pcur->callback = _callback;
 
@@ -326,15 +340,19 @@ void* pf_reciever(void* args)
 
 				packtype = ntohs( ethhdr->ether_type );
 				clb_cur = clb_root;
+				int i=0;
 				while ( clb_cur )
 				{
+					printf("++ checking %d callback (%04x == %04x)\n", i, packtype, clb_cur->packet_type);
 					if ( clb_cur->packet_type == packtype )
 					{
+						printf("++ using %d callback\n", i);
 						clb_cur->callback( rcvbuf, rcvlen );
 						break;
 					}
 					
 					clb_cur = clb_cur->next;
+					i++;
 				}
 			}
 		}

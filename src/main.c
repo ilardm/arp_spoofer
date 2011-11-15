@@ -82,11 +82,11 @@ int main(int argc, char** argv)
 		fprintf(stderr, "-- PF add arp callback error\n");
 		return 1;
 	}
-	/* if ( pf_add_callback( prop, ETHERTYPE_IP, &spf_ip_callback ) !=0 ) */
-	/* { */
-	/* 	fprintf(stderr, "-- PF add ip callback error\n"); */
-	/* 	return 1; */
-	/* } */
+	if ( pf_add_callback( prop, ETHERTYPE_IP, &spf_ip_callback ) !=0 )
+	{
+		fprintf(stderr, "-- PF add ip callback error\n");
+		return 1;
+	}
 	
 	if ( pf_start(prop) !=0 )
 	{
