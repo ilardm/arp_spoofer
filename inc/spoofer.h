@@ -29,7 +29,9 @@
 #ifndef SPOOFER_H
 #define SPOOFER_H
 
-int spf_arp_callback(unsigned char*, int);
-int spf_ip_callback(unsigned char*, int);
+#include "pf.h"
+
+int spf_arp_callback(unsigned char*, int, void*);
+int spf_ip_callback(unsigned char*, int, void*);
 
 #endif

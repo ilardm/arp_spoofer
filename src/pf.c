@@ -116,7 +116,7 @@ PF_PROPERTIES* pf_init(char* _devname)
 	return prop;
 }
 
-int pf_add_callback(PF_PROPERTIES* _properties, u_int16_t _ptype, int (*_callback)(unsigned char*, int))
+int pf_add_callback(PF_PROPERTIES* _properties, u_int16_t _ptype, int (*_callback)(unsigned char*, int, void*))
 {
 #ifdef _DEBUG
 	printf("== %s (0x%08x, %04x, 0x%08x)\n",
@@ -347,7 +347,7 @@ void* pf_reciever(void* args)
 					if ( clb_cur->packet_type == packtype )
 					{
 						printf("++ using %d callback\n", i);
-						clb_cur->callback( rcvbuf, rcvlen );
+						clb_cur->callback( rcvbuf, rcvlen, args );
 						break;
 					}
 					

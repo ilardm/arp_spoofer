@@ -29,13 +29,14 @@
 #include <stdio.h>
 #include <arpa/inet.h>	// ntohs
 #include <netinet/ether.h>	// ether_ntoa
+#include <netinet/ip.h>		// struct iphdr
 #include <memory.h>
 #include <time.h>
 
 #include "spoofer.h"
 #include "utils.h"
 
-int spf_arp_callback(unsigned char* _packet, int _len)
+int spf_arp_callback(unsigned char* _packet, int _len, void* _args)
 {
 #ifdef _DEBUG
 	printf("== %s\n",
@@ -96,6 +97,8 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 			u_ip2str( &asip, sip, BUFSZ ),
 			u_hw2str( &ashw, shw, BUFSZ )
 			);
+
+		// TODO: send packets
 	}
 	else if ( ntohs(pack->arp_hdr.ar_op) == ARPOP_REPLY )
 	{
@@ -132,7 +135,7 @@ int spf_arp_callback(unsigned char* _packet, int _len)
 	return 0;
 }
 
-int spf_ip_callback(unsigned char* _packet, int _len)
+int spf_ip_callback(unsigned char* _packet, int _len, void* _args)
 {
 #ifdef _DEBUG
 	printf("== %s\n",
@@ -146,6 +149,15 @@ int spf_ip_callback(unsigned char* _packet, int _len)
 	}
 
 	/* u_hexout( _packet, _len ); */
+	struct ether_header* hdr_eth = (struct ether_header*)_packet;
+	struct iphdr* hdr_ip = (struct iphdr*)( _packet + sizeof(struct ether_header) );
+
+	printf("++ eth:");
+	u_hexout( hdr_eth, sizeof(struct ether_header) );
+	printf("++ ip:");
+	u_hexout( hdr_ip, sizeof(struct iphdr) );
+
+	// TODO: change src/dst ip && recalc checksum
 
 	return 0;
 }
