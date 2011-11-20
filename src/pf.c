@@ -89,6 +89,29 @@ PF_PROPERTIES* pf_init(char* _devname)
 	}
 	prop->mtu = iface.ifr_mtu;
 
+	// fill own hw && ip
+	if ( ioctl( prop->sock, SIOCGIFHWADDR, &iface ) == -1 )
+	{
+		fprintf( stderr, "ioctl error: (%d) %s\n",
+			errno, strerror(errno) );
+		pf_deinit(prop);
+		return NULL;
+	}
+	struct sockaddr tmphw;
+	memcpy( &(tmphw), &(iface.ifr_hwaddr), sizeof(tmphw) );
+	memcpy( &(prop->own_hw), ((char*)&(tmphw))+2, sizeof(prop->own_hw) );	// FIXME: magicnumbers
+ 
+	if ( ioctl( prop->sock, SIOCGIFADDR, &iface ) == -1 )
+	{
+		fprintf( stderr, "ioctl error: (%d) %s\n",
+			errno, strerror(errno) );
+		pf_deinit(prop);
+		return NULL;
+	}
+	struct sockaddr tmpip;
+	memcpy( &(tmpip), &(iface.ifr_addr), sizeof(tmpip) );
+	memcpy( &(prop->own_ip), ((char*)&(tmpip))+4, sizeof(prop->own_ip) );	// FIXME: magicnumbers
+
 	if ( ioctl( prop->sock, SIOCGIFINDEX, &iface ) == -1 )
 	{
 		fprintf( stderr, "iocl error: (%d) %s\n",

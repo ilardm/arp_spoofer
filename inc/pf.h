@@ -45,6 +45,10 @@ typedef struct PF_PROPERTIES
 {
 	int sock;
 	int mtu;
+
+	struct ether_addr own_hw;
+	struct in_addr own_ip;
+
 	PF_CALLBACKS* hooks;
 
 	char shutdown;
