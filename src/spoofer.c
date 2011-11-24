@@ -101,26 +101,32 @@ int spf_arp_callback(unsigned char* _packet, int _len, void* _args)
 			u_ip2str( &asip, sip, BUFSZ ),
 			u_hw2str( &ashw, shw, BUFSZ )
 			);
+		u_hexout( pack, sizeof(ARP_PACKET) );
 
-		// TODO: send packets
-		/* if ( memcmp( &eshw, &(prop->own_hw), sizeof(eshw) ) == 0 ) */
+		//
+		// send fake reply
+		//
 		ARP_PACKET* reply = (ARP_PACKET*)calloc( 1, sizeof(ARP_PACKET) );
 
 		// packet headers
-		memcpy( /*&(*/reply->eth_hdr.ether_dhost/*)*/, &eshw, sizeof(eshw) );
-		memcpy( /*&(*/reply->eth_hdr.ether_shost/*)*/, &edhw, sizeof(edhw) );
+		memcpy( reply->eth_hdr.ether_dhost, &eshw, sizeof(eshw) );
+		memcpy( reply->eth_hdr.ether_shost, &edhw, sizeof(edhw) );
 		reply->eth_hdr.ether_type = pack->eth_hdr.ether_type;
 
 		memcpy( &(reply->arp_hdr), &(pack->arp_hdr), sizeof(pack->arp_hdr) );
-		reply->arp_hdr.ar_op = ARPOP_REPLY;
+		reply->arp_hdr.ar_op = htons( ARPOP_REPLY );
 
-		// TODO: packet data
+		// packet data
+		memcpy( reply->arp_data.shw, &(prop->own_hw), sizeof( ashw ) );
+		memcpy( reply->arp_data.sip, &(atip), sizeof( asip ) );
+		memcpy( reply->arp_data.thw, &(ashw), sizeof( athw ) );
+		memcpy( reply->arp_data.tip, &(asip), sizeof( atip ) );
 
 		// address data
 		struct sockaddr_ll sall;
 		sall.sll_family = PF_PACKET;
-		sall.sll_protocol = ETH_P_IP;	// they said it is useless field due to raw eth packet
-		sall.sll_ifindex = prop->iface_idx;		// FIXME: get from poperties
+		sall.sll_protocol = ETH_P_IP;			// they said it is useless field due to raw eth packet
+		sall.sll_ifindex = prop->iface_idx;
 		sall.sll_hatype = ARPHRD_ETHER;
 		sall.sll_pkttype = PACKET_OTHERHOST;	// destinaton is another host
 		sall.sll_halen = ETH_ALEN;
