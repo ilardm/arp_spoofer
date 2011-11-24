@@ -31,7 +31,10 @@
 #include <netinet/ether.h>	// ether_ntoa
 #include <netinet/ip.h>		// struct iphdr
 #include <memory.h>
+#include <stdlib.h>
 #include <time.h>
+#include <errno.h>
+#include <netpacket/packet.h>	// sockaddr_ll
 
 #include "spoofer.h"
 #include "utils.h"
@@ -50,6 +53,7 @@ int spf_arp_callback(unsigned char* _packet, int _len, void* _args)
 	}
 
 	ARP_PACKET* pack = (ARP_PACKET*)_packet;
+	PF_PROPERTIES* prop = (PF_PROPERTIES*)_args;
 
 	struct ether_addr	eshw;
 	struct ether_addr	edhw;
@@ -99,6 +103,44 @@ int spf_arp_callback(unsigned char* _packet, int _len, void* _args)
 			);
 
 		// TODO: send packets
+		/* if ( memcmp( &eshw, &(prop->own_hw), sizeof(eshw) ) == 0 ) */
+		ARP_PACKET* reply = (ARP_PACKET*)calloc( 1, sizeof(ARP_PACKET) );
+
+		// packet headers
+		memcpy( /*&(*/reply->eth_hdr.ether_dhost/*)*/, &eshw, sizeof(eshw) );
+		memcpy( /*&(*/reply->eth_hdr.ether_shost/*)*/, &edhw, sizeof(edhw) );
+		reply->eth_hdr.ether_type = pack->eth_hdr.ether_type;
+
+		memcpy( &(reply->arp_hdr), &(pack->arp_hdr), sizeof(pack->arp_hdr) );
+		reply->arp_hdr.ar_op = ARPOP_REPLY;
+
+		// TODO: packet data
+
+		// address data
+		struct sockaddr_ll sall;
+		sall.sll_family = PF_PACKET;
+		sall.sll_protocol = ETH_P_IP;	// they said it is useless field due to raw eth packet
+		sall.sll_ifindex = prop->iface_idx;		// FIXME: get from poperties
+		sall.sll_hatype = ARPHRD_ETHER;
+		sall.sll_pkttype = PACKET_OTHERHOST;	// destinaton is another host
+		sall.sll_halen = ETH_ALEN;
+		memcpy( sall.sll_addr, pack->eth_hdr.ether_dhost, sizeof(pack->eth_hdr.ether_dhost) );	// dst ETH
+		sall.sll_addr[6] = 0x00;
+		sall.sll_addr[7] = 0x00;
+
+		if ( sendto( prop->sock, reply, sizeof(ARP_PACKET), 0,
+				(struct sockaddr*)&sall, sizeof(sall) ) < 0)
+		{
+			fprintf( stderr, "sendto error %d %s\n",
+				errno, strerror(errno) );
+		}
+		else
+		{
+			printf("fake ARP reply sent\n");
+			u_hexout( reply, sizeof(ARP_PACKET) );
+		}
+
+		free(reply);
 	}
 	else if ( ntohs(pack->arp_hdr.ar_op) == ARPOP_REPLY )
 	{

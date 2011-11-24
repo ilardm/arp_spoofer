@@ -74,6 +74,15 @@ PF_PROPERTIES* pf_init(char* _devname)
 		pf_deinit(prop);
 		return NULL;
 	}
+	// TODO: do we need this?
+	/* int on = 1; */
+	/* if ( setsockopt( prop->sock, SOL_SOCKET, SO_DONTROUTE, &on, sizeof(on) ) < 0 ) */
+	/* { */
+	/* 	fprintf(stderr, "setsockopt error %d %s\n", */
+	/* 		errno, strerror(errno) ); */
+	/* 	pf_deinit(prop); */
+	/* 	return NULL; */
+	/* } */
 
 	// prepare to bind
 	struct ifreq iface;
@@ -119,6 +128,7 @@ PF_PROPERTIES* pf_init(char* _devname)
 		pf_deinit(prop);
 		return NULL;
 	}
+	prop->iface_idx = iface.ifr_ifindex;
 
 	// bind to iface
 	struct sockaddr_ll sll;
@@ -366,10 +376,10 @@ void* pf_reciever(void* args)
 				int i=0;
 				while ( clb_cur )
 				{
-					printf("++ checking %d callback (%04x == %04x)\n", i, packtype, clb_cur->packet_type);
+					/* printf("++ checking %d callback (%04x == %04x)\n", i, packtype, clb_cur->packet_type); */
 					if ( clb_cur->packet_type == packtype )
 					{
-						printf("++ using %d callback\n", i);
+						/* printf("++ using %d callback\n", i); */
 						clb_cur->callback( rcvbuf, rcvlen, args );
 						break;
 					}

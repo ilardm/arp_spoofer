@@ -45,6 +45,7 @@ typedef struct PF_PROPERTIES
 {
 	int sock;
 	int mtu;
+	int iface_idx;
 
 	struct ether_addr own_hw;
 	struct in_addr own_ip;
