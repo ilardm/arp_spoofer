@@ -25,9 +25,9 @@ CFLAGS		=	-c -Wall
 DFLAGS		=	-g -O0 -D_DEBUG
 RFLAGS		=	-O3 -D_RELEASE
 
-HGBRANCH=$(shell hg branch 2>/dev/null )
-HGREVISION=$(shell hg identify -i )
-override CFLAGS:=$(CFLAGS) -D_VERSION=\"$(HGREVISION)-$(HGBRANCH)\"
+VCBRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+VCREVISION=$(shell git describe --always HEAD)
+override CFLAGS:=$(CFLAGS) -D_VERSION=\"$(VCREVISION)-$(VCBRANCH)\"
 
 all: release
 
